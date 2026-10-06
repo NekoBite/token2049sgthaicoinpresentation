@@ -81,7 +81,7 @@ jobs:
         if: ${{ vars.SITE_URL != '' }}
         run: |
           for i in 1 2 3 4 5; do
-            if curl -fsS "${{ vars.SITE_URL }}" | grep -q "ThaiCoin pitch film"; then echo "ok"; exit 0; fi
+            if curl -fsS "${{ vars.SITE_URL }}" | grep -q "Leashed Agent"; then echo "ok"; exit 0; fi
             sleep 3
           done
           echo "site did not serve the new release"; exit 1

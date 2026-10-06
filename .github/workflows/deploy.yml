@@ -1,0 +1,87 @@
+name: Deploy to Hostinger VPS
+
+on:
+  pull_request:
+    paths: ['film/**', 'deploy/**', '.github/workflows/deploy.yml']
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check film
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inline script parses
+        run: |
+          node -e '
+            const fs=require("fs");
+            const html=fs.readFileSync("film/index.html","utf8");
+            const m=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+            if(!m.length){console.error("no inline script found");process.exit(1)}
+            fs.writeFileSync("/tmp/film.js",m[m.length-1][1]);
+          '
+          node --check /tmp/film.js
+      - name: Shell scripts parse
+        run: bash -n deploy/setup-vps.sh
+
+  deploy:
+    name: Deploy
+    needs: check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      BASE: /var/www/thaicoin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CFG
+          Host vps
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
+            Port ${{ secrets.VPS_PORT || 22 }}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          CFG
+
+      - name: Upload release
+        run: |
+          REL="$BASE/releases/${GITHUB_SHA}"
+          ssh vps "mkdir -p '$REL'"
+          rsync -az --delete film/ "vps:$REL/"
+
+      - name: Activate release and prune old ones
+        run: |
+          ssh vps "set -e
+            cd '$BASE'
+            ln -sfn 'releases/${GITHUB_SHA}' current.tmp
+            mv -Tf current.tmp current
+            ls -1dt releases/* | tail -n +6 | xargs -r rm -rf"
+
+      - name: Smoke test
+        if: ${{ vars.SITE_URL != '' }}
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsS "${{ vars.SITE_URL }}" | grep -q "ThaiCoin pitch film"; then echo "ok"; exit 0; fi
+            sleep 3
+          done
+          echo "site did not serve the new release"; exit 1

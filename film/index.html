@@ -239,6 +239,10 @@ function s1(lt){
     txt('฿ '+fmt0(spent),140+j,720,{f:F_M,s:96,w:700,c:rgb('214,96,92'),al:sa});
     lab('while you were asleep',140,770,{c:rgba(PAPER,.55),al:sa,s:18});
   }
+  [['no enforced budget',4.6],['no receipts',5.4],['no independent audit',6.2]].forEach((r,i)=>{
+    const a=sm(r[1],r[1]+.5,lt)*(1-sm(7.6,8.4,lt));if(a<=0)return;
+    cross(152,452+i*46,16,rgba(RED,.95*a),4);txt(r[0],184,460+i*46,{f:F_M,s:24,w:500,c:rgba(PAPER,.8*a),ls:1.5});
+  });
   const lp=eo((lt-8.2)/1.3);
   if(lp>0){leash(1120,860,ag.x-70,ag.y+70,lp,lt,{c:'111,162,208',sag:60,w:8});owner(1120,830,1.1,'OWNER')}
   agent(ag.x,ag.y,100,lt,false,calm);
@@ -246,60 +250,70 @@ function s1(lt){
 }
 function s2(lt){
   paper();
-  const steps=[['Sign in','Passkey-only wallet'],['Fund the agent','PromptPay, 1 THB = 1 THCFI'],['Set the leash','Cap enforced on-chain']];
-  const win=[[0,6],[6,12],[12,20]],st=lt<6?0:lt<12?1:2;
-  lab('OWNER JOURNEY',110,140,{c:rgba(BLUE,.9)});
+  const steps=[['Sign in','Passkey-only wallet'],['Fund the agent','PromptPay or the faucet'],['Deploy with a leash','agent deploy noodle-shop'],['See the agent','/agents']];
+  const win=[[0,5],[5,12],[12,20],[20,26]],st=lt<5?0:lt<12?1:lt<20?2:3;
+  lab('OWNER · THE ONLY HUMAN',110,130,{c:rgba(BLUE,.9)});
   steps.forEach((s,i)=>{
-    const y=210+i*190,act=i===st,done=i<st;
+    const y=170+i*165,act=i===st,done=i<st;
     ctx.save();ctx.globalAlpha=act?1:done?.75:.4;
     ctx.fillStyle=act?rgb(BLUE):done?rgb(GREEN):'rgba(0,0,0,0)';ctx.strokeStyle=act?rgb(BLUE):done?rgb(GREEN):rgba(INK,.5);ctx.lineWidth=3;
     ctx.beginPath();ctx.arc(150,y+36,30,0,TAU);ctx.fill();ctx.stroke();
     if(done)check(150,y+36,28,'#fff',5);else txt(String(i+1),150,y+48,{a:'center',f:F_M,s:32,w:700,c:act?'#fff':rgba(INK,.6)});
-    txt(s[0],206,y+34,{f:F_S,s:38,w:600});txt(s[1],206,y+72,{f:F_M,s:16,c:rgba(INK,.6),ls:1});
+    txt(s[0],206,y+34,{f:F_S,s:36,w:600});txt(s[1],206,y+72,{f:F_M,s:15,c:rgba(INK,.6),ls:.5});
     ctx.restore();
   });
   sheet(600,100,1220,770);
   win.forEach((w,i)=>{
-    const a=sm(w[0],w[0]+.5,lt)*(i<2?1-sm(w[1]-.4,w[1],lt):1);if(a<=0)return;
+    const a=sm(w[0],w[0]+.5,lt)*(i<3?1-sm(w[1]-.4,w[1],lt):1);if(a<=0)return;
     ctx.save();ctx.globalAlpha=a;ctx.translate((1-sm(w[0],w[0]+.6,lt))*40,0);
     const l=lt-w[0];
     if(i===0){
       lab('SIGN IN · /wallet/',660,170);
-      const cx=1210,cy=450,r=150,sc=clamp((l-.8)/2.2),done=l>3.2;
+      const cx=1210,cy=450,r=150,sc=clamp((l-.8)/2),done=l>2.9;
       ctx.save();ctx.beginPath();ctx.rect(cx-r-20,cy-r-20,2*r+40,(2*r+40)*sc);ctx.clip();
       ctx.strokeStyle=rgb(done?GREEN:INK);ctx.lineWidth=7;ctx.lineCap='round';
       for(let k=0;k<7;k++){const rad=r*(.22+k*.115);ctx.beginPath();ctx.arc(cx,cy,rad,Math.PI*(1.12+k*.03),Math.PI*(1.95-k*.02));ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,rad,Math.PI*(.05+k*.03),Math.PI*(.9+(k%3)*.02));ctx.stroke()}
       ctx.restore();
       if(sc>0&&sc<1){const y=cy-r-20+(2*r+40)*sc;ctx.fillStyle=rgba(BLUEL,.55);ctx.fillRect(cx-r-30,y-3,2*r+60,6)}
-      if(done){ctx.strokeStyle=rgb(GREEN);ctx.lineWidth=6;ctx.beginPath();ctx.arc(cx,cy,r+40,0,TAU*sm(3.2,3.8,l));ctx.stroke();ctx.fillStyle=rgb(GREEN);ctx.beginPath();ctx.arc(cx+r*.8,cy-r*.8,34,0,TAU);ctx.fill();check(cx+r*.8,cy-r*.8,30,'#fff',6)}
+      if(done){ctx.strokeStyle=rgb(GREEN);ctx.lineWidth=6;ctx.beginPath();ctx.arc(cx,cy,r+40,0,TAU*sm(2.9,3.5,l));ctx.stroke();ctx.fillStyle=rgb(GREEN);ctx.beginPath();ctx.arc(cx+r*.8,cy-r*.8,34,0,TAU);ctx.fill();check(cx+r*.8,cy-r*.8,30,'#fff',6)}
       txt('Passkey-only sign-in',cx,700,{a:'center',f:F_S,s:50,w:600});
-      txt('Touch to open the wallet. English UI, light paper theme.',cx,750,{a:'center',s:24,c:rgba(INK,.65)});
+      txt('Face ID or fingerprint. No seed phrase in the demo flow.',cx,750,{a:'center',s:24,c:rgba(INK,.65)});
     }else if(i===1){
-      lab('FUND THE AGENT ACCOUNT',660,170);
-      qr(720,260,330,3);lab('PROMPTPAY QR',720,640,{c:rgba(INK,.7)});
-      txt('1 THB = 1 THCFI',1130,330,{f:F_S,s:64,w:700});
-      txt('Scan with any Thai banking app.',1130,386,{s:26,c:rgba(INK,.7)});
-      txt('Paid in through ThaiFi MPP.',1130,422,{s:26,c:rgba(INK,.7)});
-      ctx.fillStyle=rgba(INK,.2);ctx.fillRect(1130,470,610,2);
-      lab('WALLET BALANCE',1130,520);
-      txt(fmt0(39*eo((l-1.5)/2)),1130,610,{f:F_M,s:96,w:700});
-      txt('THCFI',1275,610,{f:F_M,s:26,c:rgba(INK,.6),ls:3});
-    }else{
-      lab('SET THE LEASH · SPENDING CAP',660,170);
-      const x0=700,x1=1720,y=290,p=eo((l-.8)/2.6);
+      lab('FUND THE AGENT ACCOUNT · TWO DOORS',660,170);
+      qr(680,250,250,3);lab('PROMPTPAY QR',680,560,{c:rgba(INK,.7)});
+      txt('1 THB = 1 THCFI',680,640,{f:F_S,s:44,w:700});txt('Real fiat, from any Thai banking app.',680,684,{s:22,c:rgba(INK,.7)});
+      ctx.fillStyle=rgba(INK,.2);ctx.fillRect(1010,230,2,580);
+      lab('OR · /faucet',1060,270,{c:rgba(BLUE,.9)});
+      txt('10 tUSDM',1060,370,{f:F_M,s:76,w:700,al:sm(1,1.8,l)});
+      txt('+ 5 tADA',1060,444,{f:F_M,s:50,w:700,c:rgba(INK,.8),al:sm(1.6,2.4,l)});
+      txt('per address, every 24 hours',1060,500,{s:24,c:rgba(INK,.7),al:sm(2,2.8,l)});
+      txt('Cardano preprod. No keys, no grants.',1060,538,{s:24,c:rgba(INK,.7),al:sm(2.2,3,l)});
+      pill('TEST FUNDS FOR JUDGES',1060,610,GOLD,sm(3,3.8,l),{s:18});
+    }else if(i===2){
+      lab('DEPLOY WITH A LEASH · ON-CHAIN CAP',660,170);
+      ctx.fillStyle=rgb('30,44,60');ctx.fillRect(660,210,1100,96);
+      const cmd='$ npx leashed-wallet-cli-platform agent deploy noodle-shop';
+      txt(cmd.slice(0,Math.floor(cmd.length*clamp((l-.4)/2))),688,268,{f:F_M,s:22,w:500,c:'rgb(236,232,220)'});
+      const x0=700,x1=1720,y=400,p=eo((l-2.6)/2.4);
       ctx.fillStyle=rgba(INK,.15);rr(x0,y-8,x1-x0,16,8);ctx.fill();
       ctx.fillStyle=rgb(BLUE);rr(x0,y-8,(x1-x0)*.5*p,16,8);ctx.fill();
       ctx.fillStyle=rgb(SHEET);ctx.strokeStyle=rgb(BLUE);ctx.lineWidth=5;ctx.beginPath();ctx.arc(x0+(x1-x0)*.5*p,y,26,0,TAU);ctx.fill();ctx.stroke();
-      txt(fmt0(5000*p),700,420,{f:F_M,s:96,w:700});
-      txt('THCFI per 30 days',700,466,{s:28,c:rgba(INK,.7)});
-      pill('ENFORCED ON-CHAIN · AccountKeychain (TIP-1011)',700,530,GREEN,sm(3.6,4.2,l),{s:20});
-      txt('Not in app code. The chain refuses anything above the cap.',700,584,{s:24,c:rgba(INK,.65),al:sm(4,4.6,l)});
-      const ca=sm(5,5.7,l);
-      if(ca>0){ctx.save();ctx.globalAlpha*=ca;ctx.translate(0,(1-ca)*20);
-        ctx.fillStyle=rgba(BLUE,.07);ctx.strokeStyle=rgba(BLUE,.35);ctx.lineWidth=2;rr(700,640,1020,170,6);ctx.fill();ctx.stroke();
-        agent(790,725,50,lt);txt('Agent deployed',880,716,{f:F_S,s:38,w:600});lab('KEY EXPIRES 2027-01-04',880,756,{s:15});
-        ctx.strokeStyle=rgb(RED);ctx.lineWidth=2.5;rr(1400,692,280,52,3);ctx.stroke();txt('× REVOKE AGENT',1540,726,{a:'center',f:F_M,s:19,w:700,c:rgb(RED),ls:2});
-        ctx.restore()}
+      txt(fmt0(2000000*p),700,520,{f:F_M,s:88,w:700});
+      txt('units per 30 days',700,566,{s:28,c:rgba(INK,.7)});
+      pill('ENFORCED ON-CHAIN · AccountKeychain (TIP-1011)',700,636,GREEN,sm(5.2,5.8,l),{s:19});
+      txt('Not an app-level check. The chain reverts anything above the cap.',700,692,{s:23,c:rgba(INK,.65),al:sm(5.6,6.2,l)});
+      txt('expiry 2027-01-04',700,742,{f:F_M,s:18,c:rgba(INK,.55),al:sm(6,6.6,l)});
+    }else{
+      lab('/agents · leashed-agent-platform.pages.dev',660,170);
+      ctx.fillStyle=rgba(BLUE,.07);ctx.strokeStyle=rgba(BLUE,.4);ctx.lineWidth=2;rr(700,240,1020,300,6);ctx.fill();ctx.stroke();
+      agent(800,390,64,lt);
+      txt('noodle-shop agent',910,360,{f:F_S,s:44,w:600});
+      lab('TEMPLATE noodle-shop · KEY ID ••••••••',910,396,{s:14});
+      pill('ACTIVE',910,448,GREEN,1,{s:16});
+      txt('leash: 2,000,000 units / 30 days · expires 2027-01-04',910,500,{f:F_M,s:18,c:rgba(INK,.7)});
+      ctx.strokeStyle=rgb(RED);ctx.lineWidth=2.5;rr(1450,300,230,48,3);ctx.stroke();txt('× REVOKE',1565,332,{a:'center',f:F_M,s:18,w:700,c:rgb(RED),ls:2});
+      txt('From here the human is out of the loop.',700,660,{f:F_S,s:44,w:600,al:sm(2,2.8,l)});
+      txt('The agent and the sellers transact machine to machine.',700,708,{s:26,c:rgba(INK,.7),al:sm(2.6,3.4,l)});
     }
     ctx.restore();
   });
@@ -326,17 +340,19 @@ function s3(lt){
   const lines=['ร้านก๋วยเตี๋ยวเรือ','โปรโมชั่นบะหมี่เกี๊ยวหมูแดง','ลด 20% ทุกวันศุกร์'];
   let shown=Math.floor(clamp((lt-.8)/4)*lines.join('').length);
   lines.forEach((l,i)=>{const n=Math.max(0,Math.min(l.length,shown));shown-=l.length;txt(l.slice(0,n),140,250+i*70,{f:F_T,s:44,w:600})});
-  lab('CREDIT LINE REMAINING',100,560,{c:rgba(BLUE,.9)});
-  const rem=lt<9.4?5000:lt<14.4?4999.8:4998.3;
-  txt(rem.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}),100,650,{f:F_M,s:70,w:700});
-  txt('THCFI',100,690,{f:F_M,s:22,c:rgba(INK,.6),ls:3});
+  lab('SPENT THIS JOB',100,560,{c:rgba(BLUE,.9)});
+  const sp=lt<9.4?0:lt<14.4?.2:1.7;
+  txt(sp.toFixed(1),100,650,{f:F_M,s:70,w:700});txt('THCFI',250,650,{f:F_M,s:22,c:rgba(INK,.6),ls:3});
+  txt('+ '+(lt<19.4?'0.00':'0.10')+' tUSDM',100,696,{f:F_M,s:24,w:500,c:rgba(INK,.7)});
+  pill('AGENT · NO HUMAN IN THE LOOP',760,64,BLUE,sm(5,6,lt),{s:15});
+  pill('tx ↗ cardano preprod',1450,634,GOLD,sm(19.4,20,lt),{s:14});
   leash(150,830,470,760,1,lt,{sag:50,w:6});owner(150,810,.8,'OWNER');agent(520,745,52,lt);
   callRow(lt,0,110,6,{col:BLUE,title:'LLM · Thai marketing copy',sub:'seller · ThaiFi MPP catalog',price:'0.2 THCFI',rail:'MPP · CHAIN 17'});
   callRow(lt,1,288,11,{col:BLUE,title:'Image model · Thai-text poster',sub:'seller · ThaiFi MPP catalog',price:'1.5 THCFI',rail:'MPP · CHAIN 17'});
-  callRow(lt,2,466,16,{col:GOLD,title:'Verify receipt · our own seller',sub:'our seller · paywalled POST /verify-receipt',price:'0.1 tUSDM',rail:'X402 · CARDANO PREPROD'});
+  callRow(lt,2,466,16,{col:GOLD,title:'Verify receipt · our own seller',sub:'our seller · POST /verify-receipt',price:'0.1 tUSDM',rail:'X402 · CARDANO PREPROD'});
   const ra=sm(21,21.6,lt);
   if(ra>0){ctx.save();ctx.globalAlpha=ra;ctx.setLineDash([10,8]);ctx.strokeStyle=rgb(RED);ctx.lineWidth=2.5;rr(760,654,1020,128,3);ctx.stroke();ctx.setLineDash([]);
-    cross(812,718,26,rgb(RED),6);txt('Call #4 goes over the cap',860,708,{f:F_S,s:32,w:600,c:rgb(RED)});txt('Refused by the chain. The agent never needs to be trusted.',860,748,{s:22,c:rgba(INK,.7)});ctx.restore()}
+    cross(812,718,26,rgb(RED),6);txt('Call #4 goes over the cap',860,708,{f:F_S,s:32,w:600,c:rgb(RED)});txt('Refused on-chain: SpendingLimitExceeded.',860,748,{s:22,c:rgba(INK,.7)});ctx.restore()}
 }
 function s4(lt){
   paper();
@@ -370,6 +386,42 @@ function s4(lt){
   lab('ILLUSTRATIVE POSTER',1000,810,{s:13,al:sm(3,4,lt)});
 }
 
+function abox(x,y,w,h,title,sub,col,al,o={}){
+  if(al<=0)return;ctx.save();ctx.globalAlpha=al;ctx.translate(0,(1-al)*14);
+  sheet(x,y,w,h);ctx.fillStyle=rgb(col);ctx.fillRect(x,y,8,h);
+  txt(title,x+28,y+(sub?h/2-2:h/2+10),{f:F_S,s:o.s||30,w:600});if(sub)lab(sub,x+28,y+h/2+26,{s:12});
+  if(o.hl){ctx.strokeStyle=rgb(GOLD);ctx.lineWidth=3;ctx.strokeRect(x-6,y-6,w+12,h+12)}
+  ctx.restore();
+}
+function aarrow(x1,y1,x2,y2,p,col,label){
+  if(p<=0)return;ctx.save();ctx.strokeStyle=rgb(col);ctx.fillStyle=rgb(col);ctx.lineWidth=3;
+  const x=lerp(x1,x2,p),y=lerp(y1,y2,p);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x,y);ctx.stroke();
+  if(p>=1){const an=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-16*Math.cos(an-.4),y2-16*Math.sin(an-.4));ctx.lineTo(x2-16*Math.cos(an+.4),y2-16*Math.sin(an+.4));ctx.closePath();ctx.fill()}
+  if(label)txt(label,(x1+x2)/2+8,(y1+y2)/2-8,{f:F_M,s:13,w:500,ls:1,c:rgb(col),al:p});ctx.restore();
+}
+function sArch(lt){
+  paper();
+  lab('HOW IT WORKS · FOUR ACTORS, ONE HUMAN',110,120,{c:rgba(BLUE,.9)});
+  abox(110,170,300,120,'Owner','HUMAN · THAI SME',BLUE,sm(.4,1.1,lt));
+  abox(110,400,300,120,'AI agent','AUTONOMOUS · LEASHED KEY',BLUE,sm(1.4,2.1,lt));
+  abox(520,170,380,130,'Marketplace sellers','MPP CATALOG · LLM + POSTER',GOLD,sm(3,3.7,lt),{s:28});
+  abox(520,330,380,130,'Our x402 seller','POST /verify-receipt · 0.10 tUSDM',GOLD,sm(3.3,4,lt),{s:28});
+  abox(520,560,380,110,'Passbook','RECEIPTS LEDGER',GREEN,sm(5,5.7,lt));
+  abox(1000,170,380,100,'ThaiFi chain 17','THCFI · LEASH ENFORCED HERE',INK,sm(4.2,4.9,lt));
+  abox(1000,290,380,100,'Cardano preprod','TUSDM · X402',INK,sm(4.5,5.2,lt));
+  abox(1000,410,380,100,'Sepolia','CRE ATTESTATION',INK,sm(8.2,8.9,lt));
+  abox(1480,560,320,150,'CRE auditor','INDEPENDENT · SIMULATED',GREEN,sm(6.6,7.3,lt));
+  abox(1000,744,800,92,'NOWNodes RPC','DATA PLANE FOR THE AUDITOR · THAIFI 17 + CARDANO PREPROD',GOLD,sm(9.6,10.4,lt),{hl:true});
+  aarrow(260,290,260,400,sm(1.8,2.6,lt),BLUE,'leash');
+  aarrow(410,445,520,260,sm(3.4,4.2,lt),BLUE,'402 · pay');
+  aarrow(410,475,520,400,sm(3.6,4.4,lt),BLUE);
+  aarrow(900,235,1000,220,sm(4.4,5.2,lt),GOLD);
+  aarrow(900,395,1000,340,sm(4.7,5.5,lt),GOLD);
+  aarrow(710,460,710,560,sm(5.2,6,lt),GREEN,'receipts');
+  aarrow(900,625,1480,635,sm(6.8,7.8,lt),GREEN,'reads ledger');
+  aarrow(1560,560,1380,480,sm(8.4,9.2,lt),GREEN,'attests');
+  aarrow(1640,744,1640,710,sm(10,10.6,lt),GOLD,'reads');
+}
 function passbook(x,y,sc,o){
   ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);
   ctx.shadowColor=rgba(INK,.3);ctx.shadowBlur=50;ctx.shadowOffsetY=20;ctx.fillStyle=rgb('236,232,221');ctx.fillRect(0,0,1000,800);ctx.shadowColor='transparent';
@@ -427,6 +479,7 @@ function s5(lt){
   const credit=r1>.5?4998.5:5000,ch1=1.5*(r1>.5?1:0),ch2=.1*(r2>.5?1:0);
   passbook(px,py,sc,{credit,ch1,ch2,r1,r2,sign:sm(2,3,lt),pass:0});
   const X=px+1000*sc;
+  lab('SAMPLE STATEMENT · LIVE PASSBOOK, OCT 06',px,py+800*sc+30,{s:12,al:sm(1,2,lt)});
   note('credit line',400,300,px+170,py+240*sc,sm(2.4,3,lt),true);
   note('signed by the human',400,520,px+150,py+420*sc,sm(3.6,4.2,lt),true);
   note('every line is a real tx',X+40,780,px+880*sc,py+720*sc,sm(10.5,11.2,lt),false);
@@ -442,19 +495,19 @@ function s6(lt){
   ctx.beginPath();ctx.moveTo(520,380);ctx.lineTo(520+170*ap,380);ctx.stroke();if(ap>.9){ctx.beginPath();ctx.moveTo(690,380);ctx.lineTo(676,370);ctx.moveTo(690,380);ctx.lineTo(676,390);ctx.stroke()}
   const ba=sm(.8,1.6,lt);
   ctx.save();ctx.globalAlpha=ba;sheet(700,200,560,380);
-  txt('Auditor workflow',730,262,{f:F_S,s:36,w:600});lab('RISK CHECKS OVER THE RECEIPTS',730,296,{s:13});
+  txt('Auditor workflow',730,262,{f:F_S,s:36,w:600});lab('POST /api/audit · RISK CHECKS',730,296,{s:13});
   [['Receipts re-read',2.6],['Totals added up',4.4],['Problems found: none',6.2]].forEach((c,i)=>{const on=lt>=c[1],y=360+i*62;
     ctx.strokeStyle=on?rgb(GREEN):rgba(INK,.35);ctx.lineWidth=2.5;ctx.strokeRect(730,y-24,30,30);if(on)check(745,y-9,24,rgb(GREEN),4);
     txt(c[0],784,y,{s:26,w:on?600:400,c:on?rgb(INK):rgba(INK,.45)})});
-  txt('{ "verdict": "PASS", "problems": [] }',730,545,{f:F_M,s:18,w:500,c:rgba(INK,.8),al:sm(7.6,8.4,lt)});
+  txt('{ "verdict": "PASS", "checked": 2,',730,528,{f:F_M,s:18,w:500,c:rgba(INK,.8),al:sm(7.6,8.4,lt)});txt('  "attestationTx": "0x…" }',730,554,{f:F_M,s:18,w:500,c:rgba(INK,.8),al:sm(7.8,8.6,lt)});
   ctx.restore();
   const ap2=eo((lt-7.4)/1);ctx.strokeStyle=rgb(BLUE);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(1270,380);ctx.lineTo(1270+120*ap2,380);ctx.stroke();
   const ca=sm(7.8,8.6,lt);
   ctx.save();ctx.globalAlpha=ca;sheet(1400,250,390,260);lab('ATTESTATION',1430,296,{s:13});txt('Sepolia',1430,358,{f:F_S,s:46,w:700});txt('target network',1430,392,{s:20,c:rgba(INK,.65)});
-  ctx.fillStyle=rgba(INK,.15);ctx.fillRect(1430,416,330,1.5);txt('tx: simulated, see evidence file',1430,452,{f:F_M,s:14,c:rgba(INK,.65)});ctx.restore();
+  ctx.fillStyle=rgba(INK,.15);ctx.fillRect(1430,416,330,1.5);txt('simulated · see evidence file',1430,452,{f:F_M,s:14,c:rgba(INK,.65)});ctx.restore();
   stamp('PASS','VERDICT ATTESTED',960,740,-.04,GREEN,clamp((lt-9)/.9),48);
   const pa=sm(10.2,11,lt);pill('SIMULATED WORKFLOW RUN · SEPOLIA TARGET',1220,722,GOLD,pa,{s:18});
-  txt('Neither the agent nor we can forge it.',1220,780,{s:24,c:rgba(INK,.7),al:sm(11.4,12.2,lt)});
+  txt('The auditor trusts the ledger and the chain, not the agent.',1010,820,{s:24,c:rgba(INK,.7),al:sm(11.4,12.2,lt)});
 }
 function s7(lt){
   paper();
@@ -473,9 +526,9 @@ function s7(lt){
   stamp('REVOKED','KEY DISABLED ON-CHAIN',A.x+30,A.y-210,.07,RED,clamp((lt-3.9)/.7),40);
   sheet(1300,300,500,300,'30,44,60');
   lab('AGENT LOG',1330,342,{s:13,c:'rgba(236,232,220,.55)'});
-  const L=[[.8,'→ POST /verify-receipt','236,232,220'],[1.5,'← 402 · paid · 200 OK','130,200,160'],[5.2,'→ POST /verify-receipt','236,232,220'],[5.9,'✗ refused · key revoked','230,120,116']];
+  const L=[[.8,'→ POST /verify-receipt','236,232,220'],[1.5,'← 402 · paid · 200 OK','130,200,160'],[5.2,'→ pay 0.10 tUSDM','236,232,220'],[5.9,'✗ reverted on-chain · key revoked','230,120,116']];
   L.forEach((l,i)=>{if(lt<l[0])return;txt(l[1],1330,392+i*54,{f:F_M,s:20,w:500,c:rgb(l[2]),al:clamp((lt-l[0])/.3)})});
-  txt('One click. Effective on-chain.',620,880,{f:F_S,s:44,w:600,al:sm(6.4,7.2,lt)});
+  txt('The leash is enforced by the chain, not the app.',620,880,{f:F_S,s:44,w:600,al:sm(6.4,7.2,lt)});
 }
 function s8(lt){
   paper();
@@ -485,30 +538,33 @@ function s8(lt){
   leash(160,830,430,760,sm(2.6,3.8,lt),lt,{sag:50,w:6});owner(160,810,.8,'OWNER');agent(480,745,52,lt);
   const X=1060;
   lab('FOUR TRACKS · ONE PRODUCT',X,150,{c:rgba(BLUE,.9),al:sm(1.6,2.2,lt)});
-  [['TOKEN2049 Origins','main track'],['Cardano Agentic Commerce','x402 · tUSDM'],['Chainlink CRE','auditor workflow'],['NOWNodes Multichain','ThaiFi 17 + Cardano']].forEach((r,i)=>{
+  [['TOKEN2049 Origins','main track'],['Cardano Agentic Commerce','buyer + seller · x402 · tUSDM'],['Chainlink CRE','auditor workflow · simulated'],['NOWNodes Multichain','data plane · 2 chains']].forEach((r,i)=>{
     const a=sm(2+i*.35,2.6+i*.35,lt);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate((1-a)*20,0);
-    ctx.fillStyle=rgba(INK,.18);ctx.fillRect(X,176+i*70,730,1.5);txt(r[0],X,222+i*70,{f:F_S,s:34,w:600});txt(r[1],X+730,220+i*70,{a:'right',f:F_M,s:17,c:rgba(INK,.6),ls:1});ctx.restore()});
+    ctx.fillStyle=rgba(INK,.18);ctx.fillRect(X,176+i*66,730,1.5);txt(r[0],X,220+i*66,{f:F_S,s:33,w:600});txt(r[1],X+730,218+i*66,{a:'right',f:F_M,s:15,c:rgba(INK,.6),ls:.5});ctx.restore()});
   const ua=sm(4.4,5.2,lt);
-  lab('LIVE',X,520,{c:rgba(BLUE,.9),al:ua});
-  txt('leashed-agent-platform.pages.dev',X,562,{f:F_M,s:26,w:500,al:ua});
-  txt('github.com/Poom5741/leashed-agent',X,602,{f:F_M,s:26,w:500,al:ua});
-  txt('npm i leashed-wallet-cli-platform',X,642,{f:F_M,s:26,w:500,al:ua});
+  lab('LIVE',X,490,{c:rgba(BLUE,.9),al:ua});
+  txt('leashed-agent-platform.pages.dev',X,530,{f:F_M,s:25,w:500,al:ua});
+  txt('…/faucet  ·  test funds for judges',X,566,{f:F_M,s:25,w:500,al:ua});
+  txt('github.com/Poom5741/leashed-agent',X,602,{f:F_M,s:25,w:500,al:ua});
+  txt('npx leashed-wallet-cli-platform@0.5.1',X,638,{f:F_M,s:25,w:500,al:ua});
   const qa=sm(6,6.8,lt);
-  if(qa>0){ctx.save();ctx.globalAlpha=qa;ctx.fillStyle=rgba(GREEN,.1);ctx.strokeStyle=rgba(GREEN,.7);ctx.lineWidth=2;rr(X,690,730,64,3);ctx.fill();ctx.stroke();
-    check(X+34,722,24,rgb(GREEN),4);txt('Independent bot QA: campaign passed, 13 defects fixed',X+66,730,{s:22,w:500});ctx.restore()}
-  txt('Built by Poom · solo, 36-hour sprint',X,800,{f:F_M,s:18,c:rgba(INK,.75),ls:1,al:sm(7.4,8.2,lt)});
-  txt('Built on top of public ThaiFi tooling. CRE audit shown as a simulated workflow run.',X,832,{f:F_M,s:14,c:rgba(INK,.55),al:sm(8,8.8,lt)});
+  if(qa>0){ctx.save();ctx.globalAlpha=qa;ctx.fillStyle=rgba(GREEN,.1);ctx.strokeStyle=rgba(GREEN,.7);ctx.lineWidth=2;rr(X,672,730,60,3);ctx.fill();ctx.stroke();
+    check(X+34,702,24,rgb(GREEN),4);txt('Independent bot QA: campaign passed, 13 defects fixed',X+66,710,{s:21,w:500});ctx.restore()}
+  txt('2 payment rails · 1 attestation chain · 41 automated tests green',X,770,{f:F_M,s:16,c:rgba(INK,.75),ls:.5,al:sm(7,7.8,lt)});
+  txt('Built by Poom · solo, 36-hour sprint',X,804,{f:F_M,s:16,c:rgba(INK,.75),ls:1,al:sm(7.4,8.2,lt)});
+  txt('Built on pre-existing public ThaiFi tooling, disclosed in the README. CRE audit is a simulated run.',X,836,{f:F_M,s:13,c:rgba(INK,.55),al:sm(8,8.8,lt)});
 }
 
 /* ---------- timeline ---------- */
 const SC=[
- {act:0,d:12,label:'Would you give an AI your card?',vo:"Would you give an AI your credit card? Everyone says hire an agent. Nobody trusts it with a wallet.",draw:s1,dark:true},
- {act:1,d:20,label:'Owner: passkey, fund, leash',vo:"The owner signs in with a passkey, funds the agent by PromptPay, and sets the leash: a spending cap enforced on-chain, not in app code.",draw:s2,recreated:true},
- {act:2,d:24,label:'Agent pays per call',vo:"Handed a Thai brief, the agent plans the job and pays each seller per call, on two chains. Anything over the leash is refused.",draw:s3,recreated:true},
+ {act:0,d:12,label:'Would you give an AI your card?',vo:"Would you give an AI your credit card? Agents that pay for their own tools have no budgets, no receipts, and no audit.",draw:s1,dark:true},
+ {act:1,d:26,label:'Owner: passkey, fund, deploy',vo:"The owner signs in with a passkey, funds the agent by PromptPay or the test faucet, and deploys it with a leash: a spending cap enforced on-chain.",draw:s2,recreated:true},
+ {act:2,d:24,label:'Agent pays per call',vo:"Handed a Thai brief, the agent plans the job and pays each seller per call, on two chains. No human in the loop, and anything over the leash is refused.",draw:s3,recreated:true},
  {act:2,d:8,label:'The deliverable',vo:"Out comes the deliverable: a Thai promo poster, paid for per use.",draw:s4,recreated:true},
- {act:3,d:18,label:'The passbook',vo:"Every payment lands in the passbook: seller, amount, chain, a PAID stamp, and a link to the transaction. Two chains, one ledger.",draw:s5,recreated:true},
+ {act:3,d:14,label:'How it works',vo:"Four actors, one human. The owner sets the leash, the agent pays sellers on two chains, and an independent auditor reads the ledger through NOWNodes.",draw:sArch,recreated:true},
+ {act:3,d:17,label:'The passbook',vo:"Every payment lands in the passbook: seller, amount, chain, a PAID stamp, and a link to the transaction. Two chains, one ledger.",draw:s5,recreated:true},
  {act:3,d:14,label:'Independent audit',vo:"An independent Chainlink CRE workflow re-checks the whole ledger and attests the verdict. This is a simulated workflow run, targeting Sepolia.",draw:s6,recreated:true},
- {act:3,d:10,label:'Revoke',vo:"And the owner can pull the leash in one click. Revoked on-chain. The agent stops.",draw:s7,recreated:true},
+ {act:3,d:12,label:'Revoke',vo:"The owner pulls the leash in one click. The agent's next payment fails on-chain. The chain enforces it, not the app.",draw:s7,recreated:true},
  {act:4,d:14,label:'Close',vo:"Leashed Agent. The trust layer for AI agents. Your agent does the work. You hold the leash.",draw:s8},
 ];
 let acc=0;SC.forEach(s=>{s.t0=acc;acc+=s.d;s.t1=acc});
@@ -570,7 +626,7 @@ function speak(s){
 const $=id=>document.getElementById(id);
 const fmt=s=>{s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 let t=0,playing=false,started=false,last=0,cur=-1,dragging=false;
-const POSTER=SC[4].t0+13;
+const POSTER=SC[5].t0+13;
 $('scrub').max=DUR;$('tall').textContent=fmt(DUR);
 function setPlaying(v){
   playing=v;if(v){started=true;audioInit()}

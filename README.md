@@ -1,4 +1,10 @@
-# ThaiCoin
+# Leashed Agent pitch film
+
+This repo holds the TOKEN2049 Origins Hackathon pitch film. `film/index.html` is the current version (Leashed Agent, 2:00). The earlier ThaiCoin film is kept at `film/thaicoin.html`.
+
+---
+
+# ThaiCoin (earlier version)
 
 A Thai-baht-backed stablecoin for AI-agent payments, built on Cardano with the Masumi agent network.
 Built for the Origins Hackathon at TOKEN2049 Singapore (Agentic Payments, sponsored by Cardano).
@@ -7,9 +13,13 @@ ThaiCoin is in limited use today in the [ThaiFi](https://www.thaifi.com) game to
 
 ## Pitch film
 
-`film/index.html` is a self-contained 3-minute animated film. Open it in a browser.
+`film/thaicoin.html` is a self-contained 3-minute animated film. Open it in a browser.
 Press `H` for clean mode (screen capture) and `Esc` to exit. When opened from disk, a Record WebM button appears.
 Scene 13 (live demo) is a placeholder to replace with a real screen recording.
+
+## Leashed Agent film
+
+`film/index.html` is a 2:00 film built from the PM brief, using the passbook visual language from the product. Product screens are recreated, so swap in live captures where you have them (a chip marks those scenes outside clean mode). Same controls: `H` for clean mode, and a Record WebM button when opened from disk.
 
 ## Status
 
